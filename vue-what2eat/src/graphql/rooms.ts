@@ -49,3 +49,43 @@ export const createRoom = gql`
     }
   }
 `;
+export const getRestaurant = gql`
+  query getRestaurant($id: ID!) {
+    restaruant(id: $id) {
+      name
+      menus {
+        name
+        price
+      }
+    }
+  }
+`;
+export const getRestaurants = gql`
+  query getRestaurants($first: Int, $after: String, $filter: RestaurantFilter) {
+    restaurants(first: $first, after: $after, filter: $filter) {
+      pageInfo {
+        hasNextPage
+        endCursor
+        totalCount
+      }
+      edges {
+        node {
+          id
+          name
+          menus {
+            id
+            name
+            price
+          }
+        }
+      }
+    }
+  }
+`;
+export const createUserChoice = gql`
+  mutation createUserChoice($userChoice: UserChoiceParam!) {
+    createUserChoice(userChoice: $userChoice) {
+      id
+    }
+  }
+`;

@@ -1,6 +1,6 @@
 <template>
   <div class="hello">
-    <input type="text" v-model.number="first" />
+    <router-link to="/room">CreateRoom</router-link>
     <div class="table-restponsive">
       <b-table
         striped
@@ -10,16 +10,21 @@
         :tbody-tr-class="rowClass"
         small
       >
+        <!-- <router-link to="/rooms/1">CreateRoom</router-link> -->
         <template #cell(UPDATE)>
           <b-button variant="outline-primary">UpdateRoom</b-button>
         </template>
         <template #cell(DELETE)="rooms">
           <b-button
             variant="outline-primary"
-            @click="deleteRoom(rooms.item.id)"
+            @click="deleteRoom(rooms.item.id, rooms.index)"
             >{{ rooms.item.id }}</b-button
           >
         </template>
+        <template #cell(restaurant)="rooms">{{
+          rooms.item.restaurant
+        }}</template>
+
         <template #cell(open)="rooms">
           <b-button variant="outline-primary" @click="open(rooms.item.id)">{{
             rooms.item.id
@@ -31,7 +36,6 @@
         spinner="waveDots"
       ></infinite-loading>
     </div>
-    <router-link to="/room">CreateRoom</router-link>
   </div>
 </template>
 
@@ -42,14 +46,15 @@ export default {
   components: {
     InfiniteLoading,
   },
+  beforeMount() {
+    console.log("befroe");
+    this.start = true;
+  },
+
   apollo: {
-    // Advanced query with parameters
-    // The 'variables' method is watched by vue
     rooms: {
       query: getRooms,
-      // Reactive parameters
       variables() {
-        // Use vue reactive properties here
         return {
           first: this.first,
           after: this.after,
@@ -60,11 +65,13 @@ export default {
         console.log(data);
         this.endCursor = data.rooms.pageInfo.endCursor;
         console.log(this.endCursor);
+        this.start = this.endcursor ? false : true;
         this.hasNextPage = data.rooms.pageInfo.hasNextPage;
         return data.rooms.edges.map((room) => ({
           ...room.node,
           restaurant: room.node.restaurant.name,
           host: room.node.host.name,
+          maxUser: room.node.userChoices.length + "/" + room.node.maxUser,
           userChoices: room.node.userChoices.map((userChoice) => [
             userChoice.menu.name,
             userChoice.user.name,
@@ -83,33 +90,28 @@ export default {
   },
   methods: {
     async loadMore($state) {
+      console.log("loadMore");
       if (this.hasNextPage) {
-        if (this.endCursor) {
-          await this.$apollo.queries.rooms.fetchMore({
-            variables: {
-              first: 2,
-              after: this.endCursor,
-            },
-            updateQuery(previous, { fetchMoreResult }) {
-              const { pageInfo, edges, __typename } = fetchMoreResult.rooms;
-              console.log(previous.rooms.edges);
-              console.log(edges);
-              console.log(this.rooms);
-              return {
-                rooms: {
-                  __typename,
-                  edges: [...previous.rooms.edges, ...edges],
-                  pageInfo,
-                },
-              };
-            },
-          });
-          console.log("loaded");
-
-          $state.loaded();
-        } else {
-          $state.loaded();
-        }
+        await this.$apollo.queries.rooms.refresh();
+        console.log(this.endCursor);
+        await this.$apollo.queries.rooms.fetchMore({
+          variables: {
+            first: 2,
+            after: this.endCursor,
+          },
+          updateQuery(previous, { fetchMoreResult }) {
+            const { pageInfo, edges, __typename } = fetchMoreResult.rooms;
+            return {
+              rooms: {
+                __typename,
+                edges: [...previous.rooms.edges, ...edges],
+                pageInfo,
+              },
+            };
+          },
+        });
+        console.log("loaded");
+        $state.loaded();
       } else {
         console.log("completed");
         $state.complete();
@@ -127,7 +129,7 @@ export default {
     //     },
     //   });
     // },
-    deleteRoom(id) {
+    deleteRoom(id, index) {
       this.deleteRoomId = id;
       console.log(id);
       console.log(this.hostId);
@@ -138,12 +140,14 @@ export default {
           hostId: this.hostId,
         },
       });
+      this.rooms.splice(index, 1);
       // this.$apollo.queries.rooms.refresh();
     },
   },
   name: "Room",
   data() {
     return {
+      start: true,
       first: 0,
       fields: [
         "id",
@@ -163,7 +167,7 @@ export default {
       endCursor: "",
       hasNextPage: true,
       hostId: 1,
-      limit: 0,
+      // limit: 0,
       rooms: [],
     };
   },

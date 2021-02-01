@@ -14,6 +14,10 @@ const routes: Array<RouteConfig> = [
     path: "/room/", // ?
     component: CreateRoom,
   },
+  // {
+  //   path: "/rooms/:id", // ?
+  //   component: Room,
+  // },
 
   {
     path: "/about",

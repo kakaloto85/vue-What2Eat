@@ -1,6 +1,8 @@
 <template>
   <div class="hello">
-    <router-link to="/room">CreateRoom</router-link>
+    <div v-if="!this.$props.hostId && !this.$props.userId">
+      <router-link to="/room">CreateRoom</router-link>
+    </div>
     <div class="table-restponsive">
       <b-table
         striped
@@ -48,33 +50,41 @@ export default {
   },
   beforeMount() {
     console.log("befroe");
-    this.start = true;
+    console.log(this.$props.userId);
+    this.filter = this.$props.userId
+      ? { by: "UserId", userId: this.$props.userId }
+      : this.$props.hostId
+      ? { by: "HostId", hostId: this.$props.hostId }
+      : {};
+    console.log(this.filter);
   },
 
   apollo: {
     rooms: {
       query: getRooms,
+      fetchPolicy: "no-cache",
       variables() {
         return {
           first: this.first,
           after: this.after,
-          fitler: this.filter,
+          filter: this.filter,
         };
       },
       update(data) {
-        console.log(data);
         this.endCursor = data.rooms.pageInfo.endCursor;
-        console.log(this.endCursor);
         this.start = this.endcursor ? false : true;
         this.hasNextPage = data.rooms.pageInfo.hasNextPage;
         return data.rooms.edges.map((room) => ({
           ...room.node,
           restaurant: room.node.restaurant.name,
           host: room.node.host.name,
+          deadline:
+            (room.node.deadline % 12) +
+            `${room.node.deadline > 12 ? "PM" : "AM"}`,
           maxUser: room.node.userChoices.length + "/" + room.node.maxUser,
           userChoices: room.node.userChoices.map((userChoice) => [
-            userChoice.menu.name,
             userChoice.user.name,
+            userChoice.menu.name,
           ]),
         }));
       },
@@ -88,6 +98,7 @@ export default {
       },
     },
   },
+
   methods: {
     async loadMore($state) {
       console.log("loadMore");
@@ -98,6 +109,7 @@ export default {
           variables: {
             first: 2,
             after: this.endCursor,
+            filter: this.filter,
           },
           updateQuery(previous, { fetchMoreResult }) {
             const { pageInfo, edges, __typename } = fetchMoreResult.rooms;
@@ -120,15 +132,6 @@ export default {
     onDone() {
       alert("Created");
     },
-    // open(id) {
-    //   this.$apollo.mutate({
-    //     mutation: openRoom,
-    //     variables: {
-    //       id: id,
-    //       hostId: this.hostId,
-    //     },
-    //   });
-    // },
     deleteRoom(id, index) {
       this.deleteRoomId = id;
       console.log(id);
@@ -149,30 +152,43 @@ export default {
     return {
       start: true,
       first: 0,
-      fields: [
-        "id",
-        "title",
-        "restaurant",
-        "maxUser",
-        "deliveryFee",
-        "deadline",
-        "timeStamp",
-        "host",
-        "UPDATE",
-        "DELETE",
-        "open",
-        "userChoices",
-      ],
+      filter: {},
+      fields: this.$props.hostId
+        ? [
+            "id",
+            "title",
+            "restaurant",
+            "maxUser",
+            "deliveryFee",
+            "deadline",
+            "timeStamp",
+            "host",
+            "UPDATE",
+            "DELETE",
+            "open",
+            "userChoices",
+          ]
+        : [
+            "id",
+            "title",
+            "restaurant",
+            "maxUser",
+            "deliveryFee",
+            "deadline",
+            "timeStamp",
+            "host",
+            "userChoices",
+          ],
       types: ["title", "deadline", "restaurantId", "maxUser", "deliveryFee"],
       endCursor: "",
       hasNextPage: true,
-      hostId: 1,
       // limit: 0,
       rooms: [],
     };
   },
   props: {
-    msg: String,
+    userId: Number,
+    hostId: Number,
   },
 };
 </script>

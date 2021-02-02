@@ -9,8 +9,8 @@
 </template>
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
-import Room from "../components/Room.vue"; // @ is an alias to /src
 
+import Room from "../components/Room.vue";
 export default {
   components: {
     Room,

@@ -1,16 +1,20 @@
 <template>
   <div id="app">
     <div id="nav">
-      <router-link to="/">Home</router-link> |
-      <router-link to="/mypage">Mypage</router-link>
+      <CTabs variant="pills" :active-tab="0">
+        <CTab title="Home" router-link to="/"> </CTab>
+        <CTab title="Mypage" router-link to="/mypage"> </CTab>
+      </CTabs>
     </div>
     <router-view />
   </div>
 </template>
 
 <style>
+@import url("https://fonts.googleapis.com/css2?family=Noto+Sans+KR&display=swap");
+
 #app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
+  font-family: "Noto Sans KR", sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-align: center;

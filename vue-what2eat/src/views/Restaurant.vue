@@ -1,6 +1,6 @@
 <template>
-  <div class="home">
-    <router-view to="/" />
+  <div class="restaurant">
+    <router-view to="/restaurant" />
   </div>
 </template>
 

@@ -9,15 +9,9 @@
         class="mb-0"
       >
         <b-container fluid>
-          <b-input-group prepend="title">
+          <b-input-group prepend="title" class="my-3">
             <b-form-input v-model="title"></b-form-input>
           </b-input-group>
-          <div>
-            <b-icon
-              icon="alarm-fill
-"
-            ></b-icon>
-          </div>
           <div>
             <b-input-group prepend="deadline">
               <b-form-input v-model.number="deadline"></b-form-input>

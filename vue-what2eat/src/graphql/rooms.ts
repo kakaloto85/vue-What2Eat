@@ -27,6 +27,11 @@ export const getRooms = gql`
           }
           restaurant {
             name
+            menus {
+              id
+              name
+              price
+            }
           }
           host {
             name
@@ -86,6 +91,14 @@ export const createUserChoice = gql`
   mutation createUserChoice($userChoice: UserChoiceParam!) {
     createUserChoice(userChoice: $userChoice) {
       id
+    }
+  }
+`;
+export const updateRoom = gql`
+  mutation updateRoom($id: ID!, $hostId: ID!, $title: String!, $maxUser: Int!) {
+    updateRoom(id: $id, hostId: $hostId, title: $title, maxUser: $maxUser) {
+      maxUser
+      title
     }
   }
 `;

@@ -3,6 +3,10 @@
     <div v-if="!this.$props.hostId && !this.$props.userId">
       <CButton color="success" router-link to="/room">생성</CButton>
     </div>
+    <draggable v-model="myArray" @start="drag = true" @end="drag = false">
+      <div v-for="room in rooms" :key="room.id">{{ room.title }}</div>
+    </draggable>
+
     <div class="table-restponsive">
       <b-table
         striped
@@ -91,7 +95,7 @@
 </template>
 
 <script>
-// import draggable from "vuedraggable";
+import draggable from "vuedraggable";
 
 import {
   deleteRoom,
@@ -105,6 +109,7 @@ export default {
   components: {
     InfiniteLoading,
     RoomDetail,
+    draggable,
   },
   beforeMount() {
     console.log("befroe");

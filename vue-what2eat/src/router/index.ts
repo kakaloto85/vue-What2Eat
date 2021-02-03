@@ -6,6 +6,11 @@ import Room from "../components/Room.vue";
 Vue.use(VueRouter);
 
 const routes: Array<RouteConfig> = [
+  // {
+  //   path: "/",
+  //   name: "Login",
+  //   component: () => import("../components/Login.vue"),
+  // },
   {
     path: "/",
     name: "Home",

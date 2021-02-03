@@ -34,7 +34,7 @@
     "src/**/*.vue",
     "tests/**/*.ts",
     "tests/**/*.tsx"
-  ],
+, "src/vue-apollo.js"  ],
   "exclude": [
     "node_modules"
   ]

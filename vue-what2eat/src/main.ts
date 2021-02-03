@@ -6,6 +6,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
 import { BootstrapVue, BootstrapVueIcons } from "bootstrap-vue";
 import CoreuiVue from "@coreui/vue";
+import { store } from "./store";
 Vue.use(CoreuiVue);
 import { CButton, CProgress, CTab, CCollapse } from "@coreui/vue";
 
@@ -19,6 +20,7 @@ Vue.config.productionTip = false;
 
 new Vue({
   router,
+  store,
   apolloProvider: createProvider(),
   render: (h) => h(App),
 }).$mount("#app");

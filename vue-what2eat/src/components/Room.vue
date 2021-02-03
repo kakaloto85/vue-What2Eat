@@ -10,14 +10,37 @@
         :items="rooms"
         :fields="fields"
         :tbody-tr-class="rowClass"
+        :key="id"
+        primary-key="id"
         small
       >
+        <template #cell(title)="rooms">
+          <b-input-group>
+            <b-form-input v-model="rooms.item.title" v-show="visible"
+              >menu</b-form-input
+            >
+          </b-input-group>
+          <div v-show="!visible" size>{{ rooms.item.title }}</div>
+        </template>
+
         <template #cell(식당)="rooms">
           {{          rooms.item.restaurant.name,
           }}
         </template>
-        <template #cell(UPDATE)>
-          <CButton color="warning" variant="outline-primary">수정</CButton>
+        <template #cell(UPDATE)="rooms">
+          <CButton
+            color="warning"
+            variant="outline-primary"
+            @click="
+              updateRoom(
+                Number(rooms.item.id),
+                hostId,
+                rooms.item.title,
+                Number(rooms.item.maxUser[1])
+              )
+            "
+            >수정</CButton
+          >
         </template>
         <template #cell(maxUser)="rooms">
           <div>
@@ -29,6 +52,18 @@
               class="mt-1"
             />
             {{ `${rooms.item.maxUser[0]} / ${rooms.item.maxUser[1]}` }}
+            <div>
+              {{ rooms.item.maxUser[0] + " /  " }}
+              <div v-show="!visible" :style="{ float: left }">
+                {{ rooms.item.maxUser[1] }}
+              </div>
+              <div :style="{ width: '50px', float: left }">
+                <b-form-input
+                  v-model="rooms.item.maxUser[1]"
+                  v-show="visible"
+                ></b-form-input>
+              </div>
+            </div>
           </div>
         </template>
 
@@ -41,101 +76,10 @@
           </CButton>
         </template>
         <template #cell(open)="rooms">
-          <CButton color="warning" @click="rooms.toggleDetails">상세</CButton>
-
-          <b-form-checkbox
-            v-model="rooms.detailsShowing"
-            @change="rooms.toggleDetails"
-          >
-            Details via check
-          </b-form-checkbox>
+          <CButton color="success" @click="rooms.toggleDetails">상세</CButton>
         </template>
         <template #row-details="rooms">
-          <b-card>
-            <b-row>
-              <b-col>
-                <div>
-                  <b-icon
-                    icon="cart-plus-fill
-"
-                    font-scale="3"
-                  ></b-icon>
-                </div>
-                <b-row>
-                  <b-form-checkbox-group
-                    v-model="selected"
-                    stacked
-                    :disabled="rooms.item.maxUser[0] === rooms.item.maxUser[1]"
-                    :options="
-                      rooms.item.restaurant.menus.map((menu) => ({
-                        value: menu,
-                        text: menu.name + ', 가격: ' + menu.price,
-                      }))
-                    "
-                  >
-                  </b-form-checkbox-group>
-                </b-row>
-                <b-row>
-                  <div>
-                    Price:
-                    <strong>{{
-                      selected.reduce(function(pre, menu) {
-                        return pre + Number(menu.price);
-                      }, 0)
-                    }}</strong>
-                  </div>
-
-                  <div>
-                    Selected:
-                    <strong>{{ selected.map((menu) => menu.name) }}</strong>
-                  </div>
-                </b-row>
-                <CButton
-                  color="success"
-                  @click="
-                    enterRoom(
-                      2,
-                      selected.map((menu) => Number(menu.id)),
-                      rooms.item.id
-                    )
-                  "
-                  :disabled="selected.length < 1"
-                  v-c-popover="{
-                    header: 'Popover!',
-                    content: 'I am <strong>popover</strong>',
-                  }"
-                  >결정</CButton
-                >
-              </b-col>
-              <b-col>
-                <b-row>
-                  <b-icon
-                    icon="person-check-fill
-"
-                    font-scale="3"
-                  ></b-icon
-                ></b-row>
-                <b-row>
-                  <b-list-group>
-                    <ul id="example-1">
-                      <li
-                        v-for="userChoice in rooms.item.userChoices"
-                        v-bind:key="userChoice"
-                      >
-                        {{ userChoice[0] + " : " + userChoice[1] }}
-                      </li>
-                    </ul>
-                  </b-list-group>
-                </b-row>
-              </b-col>
-            </b-row>
-          </b-card>
-        </template>
-
-        <template>
-          <CCollapse :show="true" class="mt-2">
-            <CCard body-wrapper>Hello!</CCard>
-          </CCollapse>
+          <RoomDetail v-bind:rooms="rooms" />
         </template>
       </b-table>
       <infinite-loading
@@ -147,16 +91,20 @@
 </template>
 
 <script>
+// import draggable from "vuedraggable";
+
 import {
   deleteRoom,
-  createRoom,
   getRooms,
   createUserChoice,
+  updateRoom,
 } from "../graphql/rooms";
 import InfiniteLoading from "vue-infinite-loading";
+import RoomDetail from "./RoomDetail.vue";
 export default {
   components: {
     InfiniteLoading,
+    RoomDetail,
   },
   beforeMount() {
     console.log("befroe");
@@ -209,25 +157,9 @@ export default {
   },
 
   methods: {
-    enterRoom(userId, menuIds, roomId) {
-      console.log(menuIds);
-      console.log("create");
-      for (const i in menuIds) {
-        console.log(menuIds[i]);
-        this.$apollo.mutate({
-          mutation: createUserChoice,
-          variables: {
-            userChoice: { userId, roomId, menuId: menuIds[i] },
-          },
-        });
-      }
-      location.reload();
-    },
     async loadMore($state) {
-      console.log("loadMore");
       if (this.hasNextPage) {
         await this.$apollo.queries.rooms.refresh();
-        console.log(this.endCursor);
         await this.$apollo.queries.rooms.fetchMore({
           variables: {
             first: 2,
@@ -255,6 +187,21 @@ export default {
     onDone() {
       alert("Created");
     },
+    updateRoom(id, hostId, title, maxUser) {
+      console.log(id, hostId, title, maxUser);
+      if (this.visible) {
+        this.$apollo.mutate({
+          mutation: updateRoom,
+          variables: {
+            id,
+            hostId,
+            title,
+            maxUser,
+          },
+        });
+      }
+      this.visible = !this.visible;
+    },
     deleteRoom(id, index) {
       this.deleteRoomId = id;
       console.log(id);
@@ -269,10 +216,18 @@ export default {
       this.rooms.splice(index, 1);
       // this.$apollo.queries.rooms.refresh();
     },
+    startDrag: (evt, item) => {
+      evt.dataTransfer.dropEffect = "move";
+      evt.dataTransfer.effectAllowed = "move";
+      evt.dataTransfer.setData("itemID", item.id);
+    },
   },
   name: "Room",
   data() {
     return {
+      draggingRow: null,
+      draggingRowIndex: null,
+      visible: false,
       counter: 86,
       selected: [],
       start: true,
@@ -304,11 +259,11 @@ export default {
       types: ["title", "deadline", "restaurantId", "maxUser", "deliveryFee"],
       endCursor: "",
       hasNextPage: true,
-      // limit: 0,
       rooms: [],
     };
   },
   props: {
+    id: Number,
     userId: Number,
     hostId: Number,
   },

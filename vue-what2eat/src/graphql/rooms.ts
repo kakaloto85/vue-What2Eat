@@ -102,3 +102,11 @@ export const updateRoom = gql`
     }
   }
 `;
+export const getUserByLogin = gql`
+  query getUserByLogin($name: String!, $password: String!) {
+    userByLogin(name: $name, password: $password) {
+      id
+      name
+    }
+  }
+`;

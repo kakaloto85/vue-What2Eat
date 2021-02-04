@@ -3,9 +3,41 @@
     <div v-if="!this.$props.hostId && !this.$props.userId">
       <CButton color="success" router-link to="/room">생성</CButton>
     </div>
+    <table class="table table-striped table-bordered table-hover">
     <draggable v-model="myArray" @start="drag = true" @end="drag = false">
-      <div v-for="room in rooms" :key="room.id">{{ room.title }}</div>
+      <tr v-for="room in rooms" :key="room.id">
+      <td>{{room.id}}</td>
+            <td>          <div>
+            <CProgress
+              :value="(room.maxUser[0] / room.maxUser[1]) * 100"
+              color="success"
+              animated
+              style="height:20px;"
+              class="mt-1"
+            />
+            {{ `${room.maxUser[0]} / ${room.maxUser[1]}` }}
+            <div>
+              {{ room.maxUser[0] + " /  " }}
+              <div v-show="!visible" :style="{ float: left }">
+                {{ room.maxUser[1] }}
+              </div>
+              <div :style="{ width: '50px', float: left }">
+                <b-form-input
+                  v-model="room.maxUser[1]"
+                  v-show="visible"
+                ></b-form-input>
+              </div>
+            </div>
+          </div>
+</td>
+      <td>{{room.restaurant.name}}</td>
+      <td>{{room.deliveryFee}}</td>
+            <td>{{room.timeStamp}}</td>
+      <td>{{room.host}}</td>
+      <td>{{room.deadline}}</td>
+     </tr> 
     </draggable>
+    </table>
 
     <div class="table-restponsive">
       <b-table

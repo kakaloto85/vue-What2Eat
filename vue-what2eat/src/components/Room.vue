@@ -3,40 +3,44 @@
     <div v-if="!this.$props.hostId && !this.$props.userId">
       <CButton color="success" router-link to="/room">생성</CButton>
     </div>
+    <CButton color="success" @click="startChange">change</CButton>
+    <CButton color="success" @click="finishChange">finish</CButton>
     <table class="table table-striped table-bordered table-hover">
-    <draggable v-model="myArray" @start="drag = true" @end="drag = false">
-      <tr v-for="room in rooms" :key="room.id">
-      <td>{{room.id}}</td>
-            <td>          <div>
-            <CProgress
-              :value="(room.maxUser[0] / room.maxUser[1]) * 100"
-              color="success"
-              animated
-              style="height:20px;"
-              class="mt-1"
-            />
-            {{ `${room.maxUser[0]} / ${room.maxUser[1]}` }}
+      <draggable v-model="rooms" @start="drag = true" @end="drag = false">
+        <tr v-for="room in rooms" :key="room.id">
+          <td>{{ room.id }}</td>
+          <td>{{ room.title }}</td>
+          <td>{{ room.restaurant.name }}</td>
+          <td>
             <div>
-              {{ room.maxUser[0] + " /  " }}
-              <div v-show="!visible" :style="{ float: left }">
-                {{ room.maxUser[1] }}
-              </div>
-              <div :style="{ width: '50px', float: left }">
-                <b-form-input
-                  v-model="room.maxUser[1]"
-                  v-show="visible"
-                ></b-form-input>
+              <CProgress
+                :value="(room.maxUser[0] / room.maxUser[1]) * 100"
+                color="success"
+                animated
+                style="height:20px;"
+                class="mt-1"
+              />
+              {{ `${room.maxUser[0]} / ${room.maxUser[1]}` }}
+              <div>
+                {{ room.maxUser[0] + " /  " }}
+                <div v-show="!visible" :style="{ float: left }">
+                  {{ room.maxUser[1] }}
+                </div>
+                <div :style="{ width: '50px', float: left }">
+                  <b-form-input
+                    v-model="room.maxUser[1]"
+                    v-show="visible"
+                  ></b-form-input>
+                </div>
               </div>
             </div>
-          </div>
-</td>
-      <td>{{room.restaurant.name}}</td>
-      <td>{{room.deliveryFee}}</td>
-            <td>{{room.timeStamp}}</td>
-      <td>{{room.host}}</td>
-      <td>{{room.deadline}}</td>
-     </tr> 
-    </draggable>
+          </td>
+          <td>{{ room.deadline }}</td>
+          <td>{{ room.deliveryFee }}</td>
+          <td>{{ room.timeStamp }}</td>
+          <td>{{ room.host }}</td>
+        </tr>
+      </draggable>
     </table>
 
     <div class="table-restponsive">
@@ -52,9 +56,10 @@
       >
         <template #cell(title)="rooms">
           <b-input-group>
-            <b-form-input v-model="rooms.item.title" v-show="visible"
-              >menu</b-form-input
-            >
+            <b-form-input
+              v-model="rooms.item.title"
+              v-show="visible"
+            ></b-form-input>
           </b-input-group>
           <div v-show="!visible" size>{{ rooms.item.title }}</div>
         </template>
@@ -194,6 +199,11 @@ export default {
   },
 
   methods: {
+    // startChange() {},
+    // fisnishChange() {},
+    log() {
+      console.log(this.rooms);
+    },
     async loadMore($state) {
       if (this.hasNextPage) {
         await this.$apollo.queries.rooms.refresh();
